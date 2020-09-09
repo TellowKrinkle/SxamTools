@@ -27,7 +27,9 @@ struct SxamCLI: ParsableCommand {
 	func run() throws {
 		var listFile = try FileReader(path: self.list)
 		let listData = decrypt(try listFile.readAll()[...])
+
 		if let hashPath = self.hash {
+			// If the user specified a hash file, use it to verify the list was correctly decrypted
 			var hashFile = try FileReader(path: hashPath)
 			let expected = try hashFile.forceReadLE(UInt64.self)
 			let actual = fnv(listData[...])
@@ -40,6 +42,7 @@ struct SxamCLI: ParsableCommand {
 		let list = try ListFile(reader: &listReader)
 
 		guard let out = out else {
+			// If the user doesn't specify an output file, print the contents of the list file and exit
 			print("Groups")
 			for group in list.groups { print("\t\(group)")}
 			print("Items")
