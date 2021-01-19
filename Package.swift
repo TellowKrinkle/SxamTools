@@ -7,6 +7,8 @@ let package = Package(
 	dependencies: [
 		.package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
 		.package(url: "https://github.com/tellowkrinkle/SwiftBinaryReader.git", .upToNextMinor(from: "0.2.3")),
+		.package(url: "https://github.com/tellowkrinkle/SwiftUnityTexture2DDecoder.git", .upToNextMinor(from: "0.0.2")),
+		.package(url: "https://github.com/tellowkrinkle/SwiftLodePNG.git", .upToNextMinor(from: "0.0.3")),
 	],
 	targets: [
 		.target(
@@ -14,6 +16,8 @@ let package = Package(
 			dependencies: [
 				.product(name: "ArgumentParser", package: "swift-argument-parser"),
 				.product(name: "BinaryReader", package: "SwiftBinaryReader"),
+				"SwiftUnityTexture2DDecoder",
+				"SwiftLodePNG",
 			]
 		),
 	]
