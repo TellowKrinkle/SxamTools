@@ -75,6 +75,9 @@ struct SxamDecode: ParsableCommand {
 	@Flag(help: "Don't dump full texture, only the referenced sections")
 	var onlySections: Bool = false
 
+	@Flag(help: "Clear alpha of images with nearly-opaque alpha")
+	var fixupAlpha: Bool = false
+
 	func run() throws {
 		var reader = try BufferedReader(FileReader(path: path))
 		let basename = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
@@ -111,6 +114,16 @@ struct SxamDecode: ParsableCommand {
 					var filename = "\(basename)_\(section.name).png"
 					if basename.lowercased() == section.name.lowercased() {
 						filename = "\(section.name).png"
+					}
+					if fixupAlpha {
+						subimage.withMutableBuffer { subimage in
+							let lowAlphaCount = subimage.lazy.filter({ $0.a < 200 }).count
+							if lowAlphaCount * 1000 / subimage.count == 0 {
+								for index in subimage.indices {
+									subimage[index].a = 255
+								}
+							}
+						}
 					}
 					try subimage.encode().write(to: outBase.appendingPathComponent(filename))
 				}
