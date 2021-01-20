@@ -31,18 +31,22 @@ extension Sx1_05 {
 			return nil
 		}
 		var out = RGBA8Image(width: Int(width), height: Int(height), data: decodedImageData)
-		// Output is BGRA, we want RGBA
-		if !decodedImageData2.isEmpty {
-			let out2 = RGBA8Image(width: Int(width), height: Int(height), data: decodedImageData2)
-			for index in out.indices {
-				out[index].r = out2[index].b
-				out[index].a = out2[index].g
+		out.withMutableBuffer { out in
+			// Output is BGRA, we want RGBA
+			if !decodedImageData2.isEmpty {
+				var out2 = RGBA8Image(width: Int(width), height: Int(height), data: decodedImageData2)
+				out2.withMutableBuffer { out2 in
+					for index in out.indices {
+						out[index].r = out2[index].b
+						out[index].a = out2[index].g
+					}
+				}
 			}
-		}
-		for index in out.indices {
-			let tmp = out[index].r
-			out[index].r = out[index].b
-			out[index].b = tmp
+			for index in out.indices {
+				let tmp = out[index].r
+				out[index].r = out[index].b
+				out[index].b = tmp
+			}
 		}
 		return out
 	}

@@ -8,7 +8,7 @@ let package = Package(
 		.package(url: "https://github.com/apple/swift-argument-parser", from: "0.3.0"),
 		.package(url: "https://github.com/tellowkrinkle/SwiftBinaryReader.git", .upToNextMinor(from: "0.2.3")),
 		.package(url: "https://github.com/tellowkrinkle/SwiftUnityTexture2DDecoder.git", .upToNextMinor(from: "0.0.2")),
-		.package(url: "https://github.com/tellowkrinkle/SwiftLodePNG.git", .upToNextMinor(from: "0.0.3")),
+		.package(url: "https://github.com/tellowkrinkle/SwiftLodePNG.git", .upToNextMinor(from: "0.0.7")),
 	],
 	targets: [
 		.target(

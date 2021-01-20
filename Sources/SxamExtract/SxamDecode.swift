@@ -12,11 +12,15 @@ extension Optional {
 
 extension LodePNGImage {
 	mutating func flipVertically() {
-		for y in 0..<(height/2) {
-			for x in 0..<width {
-				let tmp = self[x: x, y: y]
-				self[x: x, y: y] = self[x: x, y: height - y - 1]
-				self[x: x, y: height - y - 1] = tmp
+		let width = self.width
+		let height = self.height
+		withMutableBuffer { buffer in
+			for y in 0..<(height/2) {
+				for x in 0..<width {
+					let tmp = buffer[x: x, y: y]
+					buffer[x: x, y: y] = buffer[x: x, y: height - y - 1]
+					buffer[x: x, y: height - y - 1] = tmp
+				}
 			}
 		}
 	}
@@ -29,11 +33,13 @@ extension LodePNGImage {
 
 	func subimage(horizontal: Range<Int>, vertical: Range<Int>) -> LodePNGImage {
 		var new = LodePNGImage(width: horizontal.count, height: vertical.count)
-		var i = 0
-		for y in vertical {
-			for x in horizontal {
-				new[i] = self[x: x, y: y]
-				i += 1
+		new.withMutableBuffer { new in
+			var i = 0
+			for y in vertical {
+				for x in horizontal {
+					new[i] = self[x: x, y: y]
+					i += 1
+				}
 			}
 		}
 		return new
