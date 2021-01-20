@@ -72,6 +72,9 @@ struct SxamDecode: ParsableCommand {
 	@Option(help: "Output directory", completion: .directory)
 	var out: String?
 
+	@Flag(help: "Don't dump full texture, only the referenced sections")
+	var onlySections: Bool = false
+
 	func run() throws {
 		var reader = try BufferedReader(FileReader(path: path))
 		let basename = URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent
@@ -81,19 +84,23 @@ struct SxamDecode: ParsableCommand {
 			throw Error.unknownMagic(magic)
 		case .v1_05(let file):
 			if let outBase = outBase {
-				if let ktxType = file.ktxType {
-					var output = ArrayReader()
-					try writeKTX(file.image, type: ktxType, width: UInt32(file.width), height: UInt32(file.height), to: &output)
-					try Data(output.currentArray).write(to: outBase.appendingPathComponent("\(basename).ktx"))
-					if (!file.imageA.isEmpty) {
-						output = ArrayReader()
-						try writeKTX(file.imageA, type: ktxType, width: UInt32(file.width), height: UInt32(file.height), to: &output)
-						try Data(output.currentArray).write(to: outBase.appendingPathComponent("\(basename)_a.ktx"))
+				if !onlySections {
+					if let ktxType = file.ktxType {
+						var output = ArrayReader()
+						try writeKTX(file.image, type: ktxType, width: UInt32(file.width), height: UInt32(file.height), to: &output)
+						try Data(output.currentArray).write(to: outBase.appendingPathComponent("\(basename).ktx"))
+						if (!file.imageA.isEmpty) {
+							output = ArrayReader()
+							try writeKTX(file.imageA, type: ktxType, width: UInt32(file.width), height: UInt32(file.height), to: &output)
+							try Data(output.currentArray).write(to: outBase.appendingPathComponent("\(basename)_a.ktx"))
+						}
 					}
+					try JSONEncoder().encode(file.sections).write(to: outBase.appendingPathComponent("\(basename).json"))
 				}
-				try JSONEncoder().encode(file.sections).write(to: outBase.appendingPathComponent("\(basename).json"))
 				guard let decoded = file.decode() else { throw Error.failedToDecodeImage }
-				try decoded.flippedVertically().encode().write(to: outBase.appendingPathComponent("\(basename).png"))
+				if !onlySections {
+					try decoded.flippedVertically().encode().write(to: outBase.appendingPathComponent("\(basename).png"))
+				}
 				for section in file.sections {
 					let x0 = Int((section.texturePosition.x0 * Float(file.width)).rounded(.towardZero))
 					let y0 = Int((section.texturePosition.y0 * Float(file.height)).rounded(.towardZero))
@@ -102,8 +109,8 @@ struct SxamDecode: ParsableCommand {
 					var subimage = decoded.subimage(horizontal: x0..<x1 as Range<Int>, vertical: y0..<y1 as Range<Int>)
 					subimage.flipVertically()
 					var filename = "\(basename)_\(section.name).png"
-					if basename == section.name {
-						filename = "\(basename).png"
+					if basename.lowercased() == section.name.lowercased() {
+						filename = "\(section.name).png"
 					}
 					try subimage.encode().write(to: outBase.appendingPathComponent(filename))
 				}
